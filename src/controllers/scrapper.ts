@@ -18,9 +18,7 @@ const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
   
     try {
       const browser = await puppeteer.launch({
-        executablePath: '/usr/bin/google-chrome-stable', // Path for Chrome on Render
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
       const page = await browser.newPage();
       await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
@@ -54,7 +52,7 @@ const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
 
 const getCommentsTwitter = asyncHandler(async (req: Request, res: Response) => {
     const url: string | undefined = req.query.url as string;
-    const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+    const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 500;
 
     if (!url) {
         res.json(new ApiError(400, "Missing tweet URL parameter"));
@@ -65,38 +63,30 @@ const getCommentsTwitter = asyncHandler(async (req: Request, res: Response) => {
 
     try {
         const browser = await puppeteer.launch({
-          executablePath: '/usr/bin/google-chrome-stable', // Path for Chrome on Render
           headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
-        }); // Use headful mode for debugging
+        }); 
         const page = await browser.newPage();
         await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
-        // Go to Twitter login page
         await page.goto("https://twitter.com/login", { waitUntil: "networkidle2" });
 
-        // Enter email or username
         await page.waitForSelector('input[name="text"]', { timeout: 10000 });
         await page.type('input[name="text"]', process.env.TWITTER_EMAIL as string);
         await page.keyboard.press("Enter");
         await new Promise(resolve => setTimeout(resolve, 2000)); 
 
-        // Check if Twitter asks for username confirmation
         if (await page.$('input[name="text"]')) {
             await page.type('input[name="text"]', process.env.TWITTER_USERNAME as string);
             await page.keyboard.press("Enter");
             await new Promise(resolve => setTimeout(resolve, 2000)); 
         }
 
-        // Enter password
         await page.waitForSelector('input[name="password"]', { timeout: 10000 });
         await page.type('input[name="password"]', "suj5al78");
         await page.keyboard.press("Enter");
 
-        // Wait for home page to load
         await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 });
 
-        // Go to the tweet URL
         await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
 
         let replies: string[] = [];
