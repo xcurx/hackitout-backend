@@ -1,0 +1,24 @@
+FROM ghcr.io/puppeteer/puppeteer:24.2.1
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+WORKDIR /usr/src/app
+
+# Copy package files first to leverage Docker caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy the rest of the application files
+COPY . .
+
+# Compile TypeScript
+RUN npx tsc
+
+# Expose application port (change 3000 if needed)
+EXPOSE 8000
+
+# Run the compiled application
+CMD ["node", "dist/index.js"]

@@ -18,6 +18,16 @@ const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
   
     try {
       const browser = await puppeteer.launch({
+        args: [
+          "--disable-setuid-sandbox",
+          "--no-sandbox",
+          "--single-process",
+          "--no-zygote",
+        ],
+        executablePath:
+          process.env.NODE_ENV === "production"
+            ? process.env.PUPPETEER_EXECUTABLE_PATH
+            : puppeteer.executablePath(),
         headless: true,
       });
       const page = await browser.newPage();
@@ -63,6 +73,16 @@ const getCommentsTwitter = asyncHandler(async (req: Request, res: Response) => {
 
     try {
         const browser = await puppeteer.launch({
+          args: [
+            "--disable-setuid-sandbox",
+            "--no-sandbox",
+            "--single-process",
+            "--no-zygote",
+          ],
+          executablePath:
+            process.env.NODE_ENV === "production"
+              ? process.env.PUPPETEER_EXECUTABLE_PATH
+              : puppeteer.executablePath(),
           headless: true,
         }); 
         const page = await browser.newPage();
