@@ -5,15 +5,25 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /usr/src/app
 
-# Install Google Chrome (stable version)
+# Install dependencies for Google Chrome
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
     gnupg \
     ca-certificates \
+    libx11-dev \
+    libx264-155 \
+    libx265-165 \
+    libfontconfig1 \
+    libxcomposite1 \
+    libxrandr2 \
+    libgbm-dev \
+    libasound2 \
+    libnss3 \
+    libxtst6 \
+    libgtk-3-0 \
     && curl -sSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome-stable_current_amd64.deb \
-    && apt-get install -f -y \
+    && dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y \
     && rm google-chrome-stable_current_amd64.deb
 
 # Copy package files first to leverage Docker caching
