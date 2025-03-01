@@ -1,6 +1,8 @@
 import puppeteer from "puppeteer";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { NextFunction, Request, Response } from "express";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 // import axios from "axios";
 
 const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
@@ -8,10 +10,10 @@ const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
     const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 1000; // Default to 50 comments
   
     if (!url) {
-      res.status(400).json({ error: "Missing videoId parameter" });
+      res.json(new ApiError(400, "Missing videoId parameter"));
     }
     if (isNaN(limit) || limit <= 0) {
-      res.status(400).json({ error: "Invalid limit value" });
+      res.json(new ApiError(400, "Invalid limit value"));
     }
   
     try {
@@ -38,11 +40,11 @@ const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
   
       await browser.close();
   
-      res.json({ url, comments: comments.slice(0, limit) }); 
-  
+      res.json(new ApiResponse(200, { url, comments: comments.slice(0, limit) }));
+
     } catch (error) {
       console.error("Error scraping comments:", error);
-      res.status(500).json({ error: "Failed to scrape comments" });
+      res.json(new ApiError(500, "Failed to scrape comments"));
     }
 });
 
@@ -51,10 +53,10 @@ const getCommentsTwitter = asyncHandler(async (req: Request, res: Response) => {
     const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
 
     if (!url) {
-        res.status(400).json({ error: "Missing tweet URL" });
+        res.json(new ApiError(400, "Missing tweet URL parameter"));
     }
     if (isNaN(limit) || limit <= 0) {
-        res.status(400).json({ error: "Invalid limit value" });
+        res.json(new ApiError(400, "Invalid limit value"));
     }
 
     try {
@@ -112,11 +114,11 @@ const getCommentsTwitter = asyncHandler(async (req: Request, res: Response) => {
 
         await browser.close();
 
-        res.json({ url, replies: replies.slice(0, limit) });
+        res.json(new ApiResponse(200, { url, replies: replies.slice(0, limit) }));
 
     } catch (error) {
         console.error("Error scraping Twitter replies:", error);
-        res.status(500).json({ error: "Failed to scrape Twitter replies" });
+        res.json(new ApiError(500, "Failed to scrape Twitter replies"));
     }
 });
 
@@ -124,7 +126,7 @@ const getComments = asyncHandler(async (req: Request, res: Response, next:NextFu
   const url: string | undefined = req.query.url as string;
 
   if (!url) {
-    res.status(400).json({ error: "Missing videoId parameter" });
+    res.json(new ApiError(400, "Missing URL parameter"));
   }
 
   if(url.includes("youtube.com")) {
@@ -133,7 +135,7 @@ const getComments = asyncHandler(async (req: Request, res: Response, next:NextFu
     ("x.com")) {
     getCommentsTwitter(req, res, next);
   } else{
-    res.status(400).json({ error: url});
+    res.json(new ApiError(400, "Invalid URL"));
   }
 })
 
