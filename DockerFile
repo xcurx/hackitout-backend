@@ -1,30 +1,9 @@
-FROM ghcr.io/puppeteer/puppeteer:24.2.1
+FROM ghcr.io/puppeteer/puppeteer:16.1.0
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
 WORKDIR /usr/src/app
-
-# Install dependencies for Google Chrome
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    gnupg \
-    ca-certificates \
-    libx11-dev \
-    libx264-155 \
-    libx265-165 \
-    libfontconfig1 \
-    libxcomposite1 \
-    libxrandr2 \
-    libgbm-dev \
-    libasound2 \
-    libnss3 \
-    libxtst6 \
-    libgtk-3-0 \
-    && curl -sSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y \
-    && rm google-chrome-stable_current_amd64.deb
 
 # Copy package files first to leverage Docker caching
 COPY package*.json ./
@@ -42,7 +21,7 @@ RUN npx prisma generate
 RUN npx tsc
 
 # Expose application port (change 3000 if needed)
-EXPOSE 3000
+EXPOSE 8000
 
 # Run the compiled application
 CMD ["node", "dist/index.js"]
