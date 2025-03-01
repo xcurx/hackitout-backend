@@ -3,17 +3,24 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { NextFunction, Request, Response } from "express";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { emotionAnalyser } from "../helpers/emotionAnalyser.js";
+import { sentimentAnalyser } from "../helpers/sentimentAnalyser.js";
+import { summaryGenerater } from "../helpers/summaryGenerater.js";
 // import axios from "axios";
 
 const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
     const url: string | undefined = req.query.url as string;
-    const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 1000; 
+    const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 10; 
+    const option: string = req.query.option as string;
   
     if (!url) {
       res.json(new ApiError(400, "Missing videoId parameter"));
     }
     if (isNaN(limit) || limit <= 0) {
       res.json(new ApiError(400, "Invalid limit value"));
+    }
+    if(option !== "emotion" && option !== "sentiment" && option !== "summary") {
+      res.json(new ApiError(400, "Invalid option value"));
     }
   
     try {
@@ -51,9 +58,19 @@ const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
       }
   
       await browser.close();
-  
-      res.json(new ApiResponse(200, { url, comments: comments.slice(0, limit) }));
 
+      if(option === "sentiment") {
+        const sentiment = await sentimentAnalyser(comments);
+        res.json(new ApiResponse(200, { url, comments: [sentiment] }));
+      }
+      if(option === "emotion") {
+        const emotions = await emotionAnalyser(comments);
+        res.json(new ApiResponse(200, { url, comments: [emotions] }));
+      }
+      if(option === "summary") {
+        const summary = await summaryGenerater(comments);
+        res.json(new ApiResponse(200, { url, comments:[summary] }));
+      }
     } catch (error) {
       console.error("Error scraping comments:", error);
       res.json(new ApiError(500, "Failed to scrape comments"));
