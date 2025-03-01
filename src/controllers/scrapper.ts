@@ -7,7 +7,7 @@ import { ApiError } from "../utils/ApiError.js";
 
 const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
     const url: string | undefined = req.query.url as string;
-    const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 1000; // Default to 50 comments
+    const limit: number = req.query.limit ? parseInt(req.query.limit as string, 10) : 1000; 
   
     if (!url) {
       res.json(new ApiError(400, "Missing videoId parameter"));
@@ -17,7 +17,11 @@ const getCommentsYt = asyncHandler(async (req: Request, res: Response) => {
     }
   
     try {
-      const browser = await puppeteer.launch({ headless: true });
+      const browser = await puppeteer.launch({
+        executablePath: '/usr/bin/google-chrome-stable', // Path for Chrome on Render
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
       const page = await browser.newPage();
       await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
   
@@ -60,7 +64,11 @@ const getCommentsTwitter = asyncHandler(async (req: Request, res: Response) => {
     }
 
     try {
-        const browser = await puppeteer.launch({ headless: false }); // Use headful mode for debugging
+        const browser = await puppeteer.launch({
+          executablePath: '/usr/bin/google-chrome-stable', // Path for Chrome on Render
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        }); // Use headful mode for debugging
         const page = await browser.newPage();
         await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
